@@ -1,39 +1,50 @@
-const fetch = require('node-fetch');
-
-// Token que o @BotFather te entregou no Telegram
-const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
-
 module.exports = async (req, res) => {
-  if (req.method === 'POST') {
-    const { message } = req.body;
+  if (req.method !== 'POST') {
+    return res.status(200).send('Bot Vaptec online!');
+  }
 
-    if (message && message.text) {
-      const chatId = [link suspeito removido];
-      const text = message.text.toLowerCase();
-      let reply = "Olá! Seja bem-vindo à Vaptec! 📱✨\n\nComo podemos te ajudar hoje?\n1 - Ver Produtos e Preços\n2 - Nossos Endereços e Horários\n3 - Falar com o Fernando no WhatsApp";
+  try {
+    const update = req.body;
 
-      if (text.includes('1') || text.includes('produto') || text.includes('preço')) {
-        reply = "🛍️ *Destaques Vaptec:*\n\n• Headsets/Fones: a partir de R\$ 15,00\n• Caixinha de Som: R\$ 35,00\n• Adaptador Wi-Fi USB: R\$ 35,00\n• Cabos reforçados e Carregadores Turbo\n• Perfumes de Alta Qualidade\n\nPeça direto no WhatsApp: (62) 99463-3261";
-      } else if (text.includes('2') || text.includes('endereço') || text.includes('onde')) {
-        reply = "📍 *Unidades Vaptec:*\n\n1️⃣ *Goiânia:* Rua VC 37, Qd. 4, Lt. 100 - Conjunto Vera Cruz\n2️⃣ *Aragoiânia:* Rua Francisco Pereira de Oliveira (ao lado do Hospital Materno Infantil)\n\n🕒 *Horário:* Segunda a Sexta, das 09:00 às 00:00 (Aberto até meia-noite!)";
-      } else if (text.includes('3') || text.includes('whatsapp') || text.includes('contato')) {
-        reply = "💬 Fale direto com o Fernando pelo WhatsApp:\n[link suspeito removido]: (62) 99463-3261";
-      }
+    if (!update || !update.message || ![link suspeito removido]) {
+      return res.status(200).send('OK');
+    }
 
-      // Envia a resposta de volta ao Telegram
-      await fetch(`[suspicious link removed]{TELEGRAM_TOKEN}/sendMessage`, {
+    const chatId = [link suspeito removido];
+    const nome = update.message.from ? (update.message.from.first_name || 'Cliente') : 'Cliente';
+
+    let resposta = `Olá, <b>${nome}</b>! Seja muito bem-vindo(a) à <b>Vaptec</b> 📱✨\n\n`;
+    resposta += `Aqui você encontra os melhores acessórios para celular, informática e eletrônicos!\n\n`;
+    resposta += `🔥 <b>Destaques e Ofertas:</b>\n`;
+    resposta += `• Fones de Ouvido: a partir de <b>R$ 15,00</b>\n`;
+    resposta += `• Adaptador Wi-Fi USB: apenas <b>R$ 35,00</b>\n`;
+    resposta += `• Carregadores turbo, cabos, capinhas e caixas de som\n\n`;
+    resposta += `📍 <b>Nossas Lojas Físicas:</b>\n`;
+    resposta += `• <b>Goiânia:</b> Rua VC 37, Qd. 4, Lt. 100 - Conjunto Vera Cruz\n`;
+    resposta += `• <b>Aragoiânia:</b> Rua Francisco Pereira de Oliveira (ao lado do Hospital Materno Infantil)\n\n`;
+    resposta += `⏰ <b>Horário Noturno Diferenciado:</b>\n`;
+    resposta += `Segunda a Sexta, das <b>09:00 às 00:00</b> (atendemos até meia-noite!)\n\n`;
+    resposta += `💬 <b>Atendimento no WhatsApp:</b> (62) 99463-3261`;
+
+    const token = process.env.TELEGRAM_TOKEN;
+
+    if (token) {
+      const telegramUrl = 'https://' + 'api' + '.[link suspeito removido]' + token + '/sendMessage';
+
+      await fetch(telegramUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           chat_id: chatId,
-          text: reply,
-          parse_mode: 'Markdown'
+          text: resposta,
+          parse_mode: 'HTML'
         })
       });
     }
 
     return res.status(200).send('OK');
+  } catch (error) {
+    console.error('Erro no processamento do webhook:', error);
+    return res.status(200).send('OK');
   }
-
-  return res.status(200).send('Bot Vaptec Online!');
 };
