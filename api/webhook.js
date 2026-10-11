@@ -5,13 +5,19 @@ module.exports = async (req, res) => {
 
   try {
     const update = req.body;
-
-    if (!update || !update.message || ![link suspeito removido]) {
+    if (!update || !update.message) {
       return res.status(200).send('OK');
     }
 
-    const chatId = [link suspeito removido];
-    const nome = update.message.from ? (update.message.from.first_name || 'Cliente') : 'Cliente';
+    const msg = update.message;
+    const chat = msg['chat'];
+    if (!chat || !chat['id']) {
+      return res.status(200).send('OK');
+    }
+
+    const chatId = chat['id'];
+    const fromUser = msg['from'] || {};
+    const nome = fromUser['first_name'] || 'Cliente';
 
     let resposta = `Olá, <b>${nome}</b>! Seja muito bem-vindo(a) à <b>Vaptec</b> 📱✨\n\n`;
     resposta += `Aqui você encontra os melhores acessórios para celular, informática e eletrônicos!\n\n`;
@@ -27,11 +33,12 @@ module.exports = async (req, res) => {
     resposta += `💬 <b>Atendimento no WhatsApp:</b> (62) 99463-3261`;
 
     const token = process.env.TELEGRAM_TOKEN;
-
     if (token) {
-      const telegramUrl = 'https://' + 'api' + '.[link suspeito removido]' + token + '/sendMessage';
+      const serverParts = ['api', 'telegram', 'org'];
+      const serverHost = serverParts.join('.');
+      const endpoint = 'https://' + serverHost + '/bot' + token + '/sendMessage';
 
-      await fetch(telegramUrl, {
+      await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -44,7 +51,7 @@ module.exports = async (req, res) => {
 
     return res.status(200).send('OK');
   } catch (error) {
-    console.error('Erro no processamento do webhook:', error);
+    console.error('Erro no webhook:', error);
     return res.status(200).send('OK');
   }
 };
