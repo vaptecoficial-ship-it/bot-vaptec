@@ -30,7 +30,9 @@ module.exports = async (req, res) => {
       respostaFinal = 'Olá, ' + nome + '! Seja muito bem-vindo(a) à Vaptec! 📱✨\n\n' +
         'Sou o assistente virtual inteligente da loja.\n' +
         'Como posso te ajudar hoje? Pode me perguntar sobre nossos produtos, valores, suporte técnico, endereços ou horários!';
-    } else if (chaveGemini && textoCliente) {
+    } else if (!chaveGemini) {
+      respostaFinal = 'Aviso: A chave GEMINI_API_KEY não foi encontrada na Vercel.';
+    } else if (textoCliente) {
       const promptSistema = 'Você é o atendente virtual inteligente da loja VAPTEC, especializada em acessórios para celular, eletrônicos e informática em Goiás.\n' +
         'Informações oficiais da Vaptec:\n' +
         '- Lojas físicas:\n' +
@@ -42,7 +44,7 @@ module.exports = async (req, res) => {
         '  • Fones de ouvido a partir de R$ 15,00.\n' +
         '  • Adaptador Wi-Fi USB por apenas R$ 35,00.\n' +
         '  • Carregadores turbo, cabos reforçados, capinhas de celular, caixas de som bluetooth e periféricos.\n' +
-        '- Tom de voz: Muito educado, prestativo, acolhedor, comercial e objetivo. Use emojis com moderação. Chame o cliente pelo primeiro nome quando apropriado (' + nome + '). Responda de forma clara em 1 a 3 parágrafos curtos. Se o cliente relatar problemas técnicos (ex: microfone não funciona, Wi-Fi caindo), dê dicas práticas e sugira os acessórios ou uma visita à loja.\n\n' +
+        '- Tom de voz: Muito educado, prestativo, acolhedor, comercial e objetivo. Chame o cliente pelo primeiro nome quando apropriado (' + nome + '). Responda de forma clara em 1 a 3 parágrafos curtos.\n\n' +
         'Mensagem do cliente: "' + textoCliente + '"';
 
       try {
@@ -69,10 +71,10 @@ module.exports = async (req, res) => {
             }
           }
         } else if (data && data['error']) {
-          console.error('Erro na resposta do Gemini:', JSON.stringify(data['error']));
+          respostaFinal = '⚠️ Resposta do Google: ' + (data['error']['message'] || 'Erro de autenticação na API do Gemini.');
         }
       } catch (errAi) {
-        console.error('Erro de conexao com Gemini:', errAi);
+        respostaFinal = '⚠️ Erro de conexão com a IA: ' + errAi.message;
       }
     }
 
