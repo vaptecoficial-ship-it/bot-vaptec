@@ -27,7 +27,7 @@ module.exports = async (req, res) => {
     let respostaFinal = '';
 
     if (textoCliente === '/start') {
-      respostaFinal = 'Olá, <b>' + nome + '</b>! Seja muito bem-vindo(a) à <b>Vaptec</b>! 📱✨\n\n' +
+      respostaFinal = 'Olá, ' + nome + '! Seja muito bem-vindo(a) à Vaptec! 📱✨\n\n' +
         'Sou o assistente virtual inteligente da loja.\n' +
         'Como posso te ajudar hoje? Pode me perguntar sobre nossos produtos, valores, suporte técnico, endereços ou horários!';
     } else if (chaveGemini && textoCliente) {
@@ -58,21 +58,26 @@ module.exports = async (req, res) => {
         });
 
         const data = await geminiResponse.json();
-        const candList = data ? data['candidates'] : null;
-        if (Array.isArray(candList) && candList.length > 0) {
-          const primeiro = candList[0];
-          const partes = (primeiro && primeiro['content']) ? primeiro['content']['parts'] : null;
-          if (Array.isArray(partes) && partes.length > 0) {
-            respostaFinal = partes[0]['text'] || '';
+        if (data && Array.isArray(data['candidates'])) {
+          for (const cand of data['candidates']) {
+            if (cand && cand['content'] && Array.isArray(cand['content']['parts'])) {
+              for (const part of cand['content']['parts']) {
+                if (part && part['text']) {
+                  respostaFinal += part['text'];
+                }
+              }
+            }
           }
+        } else if (data && data['error']) {
+          console.error('Erro na resposta do Gemini:', JSON.stringify(data['error']));
         }
       } catch (errAi) {
-        console.error('Erro na IA:', errAi);
+        console.error('Erro de conexao com Gemini:', errAi);
       }
     }
 
     if (!respostaFinal) {
-      respostaFinal = 'Olá, <b>' + nome + '</b>! A Vaptec está à sua disposição. Atendemos de segunda a sexta até meia-noite (00:00). Nossas lojas ficam em Goiânia e Aragoiânia, e você pode falar direto conosco no WhatsApp: (62) 99463-3261.';
+      respostaFinal = 'Olá, ' + nome + '! A Vaptec está à sua disposição. Atendemos de segunda a sexta até meia-noite (00:00). Nossas lojas ficam em Goiânia e Aragoiânia, e você pode falar direto conosco no WhatsApp: (62) 99463-3261.';
     }
 
     if (tokenTelegram) {
@@ -84,8 +89,7 @@ module.exports = async (req, res) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           chat_id: chatId,
-          text: respostaFinal,
-          parse_mode: 'HTML'
+          text: respostaFinal
         })
       });
     }
