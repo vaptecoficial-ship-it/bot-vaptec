@@ -25,7 +25,6 @@ module.exports = async (req, res) => {
     const chaveGemini = env['GEMINI_API_KEY'];
 
     let respostaFinal = '';
-    let erroGoogle = '';
 
     if (textoCliente === '/start') {
       respostaFinal = 'Olá, ' + nome + '! Seja muito bem-vindo(a) à Vaptec! 📱✨\n\n' +
@@ -46,7 +45,7 @@ module.exports = async (req, res) => {
         'Responda a dúvida do cliente ' + nome + ' de forma curta, prestativa e comercial.\n\n' +
         'Mensagem do cliente: "' + textoCliente + '"';
 
-      const modelos = ['gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-1.5-pro'];
+      const modelos = ['gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash-latest'];
       const geminiHost = ['generativelanguage', 'googleapis', 'com'].join('.');
 
       for (const modelo of modelos) {
@@ -61,22 +60,19 @@ module.exports = async (req, res) => {
           });
 
           const data = await geminiResponse.json();
-          if (data && Array.isArray(data['candidates'])) {
-            for (const cand of data['candidates']) {
-              if (cand && cand['content'] && Array.isArray(cand['content']['parts'])) {
-                for (const part of cand['content']['parts']) {
-                  if (part && part['text']) {
-                    respostaFinal += part['text'];
-                  }
+          if (data && Array.isArray(data['candidates']) && data['candidates'].length > 0) {
+            const cand = data['candidates'][0];
+            if (cand && cand['content'] && Array.isArray(cand['content']['parts'])) {
+              for (const part of cand['content']['parts']) {
+                if (part && part['text']) {
+                  respostaFinal += part['text'];
                 }
               }
             }
-          } else if (data && data['error']) {
-            erroGoogle = data['error']['message'] || 'Erro na API do Google';
           }
           if (respostaFinal) break;
         } catch (e) {
-          erroGoogle = e.message;
+          // tenta o proximo modelo
         }
       }
     }
@@ -106,10 +102,6 @@ module.exports = async (req, res) => {
           '• Para ver preços e ofertas, digite: *quais os valores?*\n' +
           '• Falar com atendente no WhatsApp: (62) 99463-3261\n' +
           '• Ficamos abertos hoje até MEIA-NOITE (00:00)!';
-        
-        if (erroGoogle) {
-          respostaFinal += '\n\n⚠️ *(Aviso IA: ' + erroGoogle + ')*';
-        }
       }
     }
 
