@@ -1,6 +1,6 @@
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
-    return res.status(200).send('Bot Vaptec com IA online!');
+    return res.status(200).send('Bot Vaptec online!');
   }
 
   try {
@@ -25,29 +25,28 @@ module.exports = async (req, res) => {
     const chaveGemini = env['GEMINI_API_KEY'];
 
     let respostaFinal = '';
+    let erroGoogle = '';
 
     if (textoCliente === '/start') {
       respostaFinal = 'Olá, ' + nome + '! Seja muito bem-vindo(a) à Vaptec! 📱✨\n\n' +
-        'Sou o assistente virtual inteligente da loja.\n' +
-        'Como posso te ajudar hoje? Pode me perguntar sobre nossos produtos, valores, suporte técnico, endereços ou horários!';
-    } else if (!chaveGemini) {
-      respostaFinal = 'Aviso: A chave GEMINI_API_KEY não foi encontrada na Vercel.';
-    } else if (textoCliente) {
-      const promptSistema = 'Você é o atendente virtual inteligente da loja VAPTEC, especializada em acessórios para celular, eletrônicos e informática em Goiás.\n' +
-        'Informações oficiais da Vaptec:\n' +
-        '- Lojas físicas:\n' +
-        '  1) Goiânia: Rua VC 37, Qd. 4, Lt. 100 - Conjunto Vera Cruz.\n' +
-        '  2) Aragoiânia: Rua Francisco Pereira de Oliveira (ao lado do Hospital Materno Infantil).\n' +
-        '- Horário de funcionamento: Segunda a Sexta, das 09:00 às 00:00 (atendimento noturno até meia-noite!). Sábado e domingo fechado.\n' +
-        '- WhatsApp oficial para pedidos e suporte: (62) 99463-3261.\n' +
-        '- Principais produtos e preços:\n' +
-        '  • Adaptador Wi-Fi USB em promoção especial por R$ 25,00 (preço normal R$ 35,00).\n' +
-        '  • Fones de ouvido a partir de R$ 15,00.\n' +
-        '  • Carregadores turbo, cabos reforçados, capinhas de celular, caixas de som bluetooth e periféricos.\n' +
-        '- Tom de voz: Muito educado, prestativo, acolhedor, comercial e objetivo. Chame o cliente pelo primeiro nome quando apropriado (' + nome + '). Responda de forma clara em 1 a 3 parágrafos curtos.\n\n' +
+        'Como posso te ajudar hoje?\n' +
+        '• 📍 *Lojas*: Goiânia (Conjunto Vera Cruz) e Aragoiânia\n' +
+        '• ⏰ *Horário*: Segunda a Sexta, das 09h à MEIA-NOITE (00:00)!\n' +
+        '• 📡 *Oferta*: Adaptador Wi-Fi USB por apenas R$ 25,00!\n' +
+        '• 🎧 *Fones*: A partir de R$ 15,00\n' +
+        '• 📲 *WhatsApp*: (62) 99463-3261';
+    } else if (chaveGemini) {
+      const promptSistema = 'Você é o atendente virtual inteligente da loja VAPTEC em Goiás.\n' +
+        'Informações oficiais:\n' +
+        '- Lojas: Goiânia (Conjunto Vera Cruz, Rua VC 37) e Aragoiânia (Rua Francisco Pereira de Oliveira).\n' +
+        '- Horário: Segunda a Sexta das 09:00 às 00:00 (até meia-noite).\n' +
+        '- Promoção: Adaptador Wi-Fi USB por R$ 25,00 (de R$ 35).\n' +
+        '- Fones: a partir de R$ 15,00. Carregadores turbo, cabos, capinhas.\n' +
+        '- WhatsApp: (62) 99463-3261.\n' +
+        'Responda a dúvida do cliente ' + nome + ' de forma curta, prestativa e comercial.\n\n' +
         'Mensagem do cliente: "' + textoCliente + '"';
 
-      const modelos = ['gemini-2.0-flash', 'gemini-1.5-flash-latest', 'gemini-1.5-flash-002'];
+      const modelos = ['gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-1.5-pro'];
       const geminiHost = ['generativelanguage', 'googleapis', 'com'].join('.');
 
       for (const modelo of modelos) {
@@ -72,16 +71,46 @@ module.exports = async (req, res) => {
                 }
               }
             }
+          } else if (data && data['error']) {
+            erroGoogle = data['error']['message'] || 'Erro na API do Google';
           }
           if (respostaFinal) break;
         } catch (e) {
-          // tenta o proximo modelo se falhar
+          erroGoogle = e.message;
         }
       }
     }
 
+    // Resposta inteligente por assunto caso a IA nao responda
     if (!respostaFinal) {
-      respostaFinal = 'Olá, ' + nome + '! A Vaptec está à sua disposição. Atendemos de segunda a sexta até meia-noite (00:00). Nossas lojas ficam em Goiânia e Aragoiânia, e você pode falar direto conosco no WhatsApp: (62) 99463-3261.';
+      const txt = textoCliente.toLowerCase();
+      if (txt.includes('endereço') || txt.includes('onde') || txt.includes('loja') || txt.includes('fica') || txt.includes('local')) {
+        respostaFinal = '📍 *Nossas Lojas Vaptec:*\n' +
+          '1) *Goiânia*: Rua VC 37, Qd. 4, Lt. 100 - Conjunto Vera Cruz.\n' +
+          '2) *Aragoiânia*: Rua Francisco Pereira de Oliveira (ao lado do Hospital Materno Infantil).\n\n' +
+          '⏰ Atendemos de segunda a sexta até MEIA-NOITE (00:00)!';
+      } else if (txt.includes('preço') || txt.includes('quanto') || txt.includes('valor') || txt.includes('fone') || txt.includes('wifi') || txt.includes('adaptador')) {
+        respostaFinal = '🔥 *Principais Ofertas Vaptec:*\n' +
+          '• 📡 *Adaptador Wi-Fi USB*: de R$ 35 por apenas R$ 25,00!\n' +
+          '• 🎧 *Fones de Ouvido*: a partir de R$ 15,00\n' +
+          '• ⚡ *Carregadores Turbo*, cabos reforçados e caixas de som!\n\n' +
+          '📲 Peça pelo WhatsApp: (62) 99463-3261';
+      } else if (txt.includes('horario') || txt.includes('aberto') || txt.includes('fecha') || txt.includes('noite') || txt.includes('hora')) {
+        respostaFinal = '⏰ *Horário de Funcionamento Vaptec:*\n' +
+          'Segunda a Sexta: das 09:00 às 00:00 (Atendimento noturno até meia-noite!).\n' +
+          'Sábado e Domingo: Fechado.';
+      } else {
+        respostaFinal = 'Olá, ' + nome + '! Seja bem-vindo(a) à Vaptec! 📱✨\n\n' +
+          'Como posso te ajudar?\n' +
+          '• Para ver endereços, digite: *onde fica a loja?*\n' +
+          '• Para ver preços e ofertas, digite: *quais os valores?*\n' +
+          '• Falar com atendente no WhatsApp: (62) 99463-3261\n' +
+          '• Ficamos abertos hoje até MEIA-NOITE (00:00)!';
+        
+        if (erroGoogle) {
+          respostaFinal += '\n\n⚠️ *(Aviso IA: ' + erroGoogle + ')*';
+        }
+      }
     }
 
     if (tokenTelegram) {
@@ -93,7 +122,8 @@ module.exports = async (req, res) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           chat_id: chatId,
-          text: respostaFinal
+          text: respostaFinal,
+          parse_mode: 'Markdown'
         })
       });
     }
