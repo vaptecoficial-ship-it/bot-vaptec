@@ -41,40 +41,42 @@ module.exports = async (req, res) => {
         '- Horário de funcionamento: Segunda a Sexta, das 09:00 às 00:00 (atendimento noturno até meia-noite!). Sábado e domingo fechado.\n' +
         '- WhatsApp oficial para pedidos e suporte: (62) 99463-3261.\n' +
         '- Principais produtos e preços:\n' +
+        '  • Adaptador Wi-Fi USB em promoção especial por R$ 25,00 (preço normal R$ 35,00).\n' +
         '  • Fones de ouvido a partir de R$ 15,00.\n' +
-        '  • Adaptador Wi-Fi USB por apenas R$ 35,00.\n' +
         '  • Carregadores turbo, cabos reforçados, capinhas de celular, caixas de som bluetooth e periféricos.\n' +
         '- Tom de voz: Muito educado, prestativo, acolhedor, comercial e objetivo. Chame o cliente pelo primeiro nome quando apropriado (' + nome + '). Responda de forma clara em 1 a 3 parágrafos curtos.\n\n' +
         'Mensagem do cliente: "' + textoCliente + '"';
 
-      try {
-        const geminiHost = ['generativelanguage', 'googleapis', 'com'].join('.');
-        const geminiUrl = 'https://' + geminiHost + '/v1beta/models/gemini-1.5-flash:generateContent?key=' + chaveGemini;
+      const modelos = ['gemini-2.0-flash', 'gemini-1.5-flash-latest', 'gemini-1.5-flash-002'];
+      const geminiHost = ['generativelanguage', 'googleapis', 'com'].join('.');
 
-        const geminiResponse = await fetch(geminiUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: promptSistema }] }]
-          })
-        });
+      for (const modelo of modelos) {
+        try {
+          const geminiUrl = 'https://' + geminiHost + '/v1beta/models/' + modelo + ':generateContent?key=' + chaveGemini;
+          const geminiResponse = await fetch(geminiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: promptSistema }] }]
+            })
+          });
 
-        const data = await geminiResponse.json();
-        if (data && Array.isArray(data['candidates'])) {
-          for (const cand of data['candidates']) {
-            if (cand && cand['content'] && Array.isArray(cand['content']['parts'])) {
-              for (const part of cand['content']['parts']) {
-                if (part && part['text']) {
-                  respostaFinal += part['text'];
+          const data = await geminiResponse.json();
+          if (data && Array.isArray(data['candidates'])) {
+            for (const cand of data['candidates']) {
+              if (cand && cand['content'] && Array.isArray(cand['content']['parts'])) {
+                for (const part of cand['content']['parts']) {
+                  if (part && part['text']) {
+                    respostaFinal += part['text'];
+                  }
                 }
               }
             }
           }
-        } else if (data && data['error']) {
-          respostaFinal = '⚠️ Resposta do Google: ' + (data['error']['message'] || 'Erro de autenticação na API do Gemini.');
+          if (respostaFinal) break;
+        } catch (e) {
+          // tenta o proximo modelo se falhar
         }
-      } catch (errAi) {
-        respostaFinal = '⚠️ Erro de conexão com a IA: ' + errAi.message;
       }
     }
 
