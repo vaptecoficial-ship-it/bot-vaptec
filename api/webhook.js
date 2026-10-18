@@ -33,7 +33,7 @@ module.exports = async (req, res) => {
         '• ⏰ *Horário*: Segunda a Sexta, das 09h à MEIA-NOITE (00:00)!\n' +
         '• 📡 *Oferta*: Adaptador Wi-Fi USB por apenas R\$ 25,00!\n' +
         '• 🎧 *Fones*: A partir de R\$ 15,00\n' +
-        '• 💳 *PIX / WhatsApp*: 62994633261';
+        '• 💳 *PIX (Caixa)*: 62994633261 (Fernando Rodrigues Junior)';
     } else if (chaveGemini) {
       const promptSistema = 'Você é o atendente virtual inteligente da loja VAPTEC em Goiás.\n' +
         'Informações oficiais:\n' +
@@ -41,7 +41,8 @@ module.exports = async (req, res) => {
         '- Horário: Segunda a Sexta das 09:00 às 00:00 (até meia-noite).\n' +
         '- Promoção: Adaptador Wi-Fi USB por R\$ 25,00 (de R\$ 35).\n' +
         '- Fones: a partir de R\$ 15,00. Carregadores turbo, cabos, capinhas.\n' +
-        '- WhatsApp e Chave PIX: (62) 99463-3261 / 62994633261.\n' +
+        '- WhatsApp: (62) 99463-3261.\n' +
+        '- Dados do PIX: Chave (Telefone) 62994633261 | Titular: Fernando Rodrigues Junior | Banco: Caixa Econômica Federal.\n' +
         'Responda a dúvida do cliente ' + nome + ' de forma curta, prestativa e comercial.\n\n' +
         'Mensagem do cliente: "' + textoCliente + '"';
 
@@ -81,12 +82,14 @@ module.exports = async (req, res) => {
     if (!respostaFinal) {
       const txt = textoCliente.toLowerCase();
       if (txt.includes('pix') || txt.includes('pagar') || txt.includes('pagamento') || txt.includes('comprar') || txt.includes('chave')) {
-        respostaFinal = '💳 *Pagamento via PIX - Vaptec*\n\n' +
+        respostaFinal = '💳 *Dados para Pagamento via PIX - Vaptec*\n\n' +
           '• *Chave PIX (Telefone)*: `62994633261`\n' +
+          '• *Titular*: Fernando Rodrigues Junior\n' +
+          '• *Banco*: Caixa Econômica Federal\n' +
           '• *WhatsApp para Comprovante*: (62) 99463-3261\n\n' +
           '📌 *Como finalizar:*\n' +
-          '1. Faça o PIX para o número **62994633261**\n' +
-          '2. Envie o comprovante no WhatsApp (62) 99463-3261 informando seu nome e o produto desejado.\n' +
+          '1. Faça o PIX para **62994633261** (Caixa - Fernando Rodrigues Junior).\n' +
+          '2. Envie o comprovante no WhatsApp (62) 99463-3261 com o seu nome e produto.\n' +
           '3. Retire na loja de Goiânia ou Aragoiânia!';
       } else if (txt.includes('endereço') || txt.includes('onde') || txt.includes('loja') || txt.includes('fica') || txt.includes('local')) {
         respostaFinal = '📍 *Nossas Lojas Vaptec:*\n' +
@@ -98,7 +101,7 @@ module.exports = async (req, res) => {
           '• 📡 *Adaptador Wi-Fi USB*: de R\$ 35 por apenas R\$ 25,00!\n' +
           '• 🎧 *Fones de Ouvido*: a partir de R\$ 15,00\n' +
           '• ⚡ *Carregadores Turbo*, cabos reforçados e caixas de som!\n\n' +
-          '💳 *PIX / WhatsApp*: 62994633261';
+          '💳 *PIX (Caixa)*: 62994633261 (Fernando Rodrigues Junior)';
       } else if (txt.includes('horario') || txt.includes('aberto') || txt.includes('fecha') || txt.includes('noite') || txt.includes('hora')) {
         respostaFinal = '⏰ *Horário de Funcionamento Vaptec:*\n' +
           'Segunda a Sexta: das 09:00 às 00:00 (Atendimento noturno até meia-noite!).\n' +
